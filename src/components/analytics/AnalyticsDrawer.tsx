@@ -15,7 +15,7 @@ import {
 	Zap,
 } from "lucide-react";
 import type { ReactNode } from "react";
-import { useEffect, useMemo, useState } from "react";
+import { lazy, Suspense, useEffect, useMemo, useState } from "react";
 import {
 	Area,
 	AreaChart,
@@ -30,8 +30,13 @@ import {
 	YAxis,
 } from "recharts";
 import type { GuestSnapshot } from "../../lib/client";
+import type { ChartDataPoint } from "./ChartComponents";
 import { fmtCost, fmtPercent, fmtTokens, relTime } from "../../lib/format";
 import "./analytics.css";
+
+const Charts = lazy(() => import("./ChartComponents"));
+
+const CHART_FALLBACK = <div className="h-[200px] w-full animate-pulse bg-zinc-800/20 rounded-lg" />;
 
 const BUDGET_KEY = "omp.collab.budget";
 

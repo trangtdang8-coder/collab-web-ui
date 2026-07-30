@@ -23,6 +23,9 @@ export const useAIStream = (endpoint: string) => {
     }
   }, []);
 
+  const messagesRef = useRef<Message[]>(messages);
+  messagesRef.current = messages;
+
   const sendMessage = useCallback(async (content: string) => {
     if (!content.trim()) return;
 
@@ -52,7 +55,7 @@ export const useAIStream = (endpoint: string) => {
       const response = await fetch(endpoint, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ messages: [...messages, userMessage] }),
+        body: JSON.stringify({ messages: [...messagesRef.current, userMessage] }),
         signal: abortControllerRef.current.signal,
       });
 
@@ -91,7 +94,7 @@ export const useAIStream = (endpoint: string) => {
       abortControllerRef.current = null;
       if (streamRafRef.current) cancelAnimationFrame(streamRafRef.current);
     }
-  }, [endpoint, messages]);
+  }, [endpoint]);
 
   return { messages, isStreaming, error, sendMessage, stopGeneration };
 };

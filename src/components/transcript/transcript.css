@@ -175,6 +175,8 @@
 	flex-direction: column;
 	align-items: flex-start;
 	gap: 4px;
+	user-select: text;
+	-webkit-user-select: text;
 }
 
 .tr-row--assistant .tr-body {

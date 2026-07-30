@@ -17,23 +17,30 @@ function createRoomLink(roomIdPrefix: string): string {
   return formatCollabLink(DEFAULT_RELAY_URL, `${roomIdPrefix}-workspace`, bytes);
 }
 
-const DEFAULT_SESSIONS: WorkspaceSession[] = [
-  { id: '1', name: 'Main Canvas', hash: `#${createRoomLink('main-canvas')}`, createdAt: Date.now() },
-  { id: '2', name: 'Design Sprint', hash: `#${createRoomLink('design-sprint')}`, createdAt: Date.now() - 3600000 },
-];
+let _defaultSessions: WorkspaceSession[] | null = null;
+
+function getDefaultSessions(): WorkspaceSession[] {
+  if (!_defaultSessions) {
+    _defaultSessions = [
+      { id: '1', name: 'Main Canvas', hash: `#${createRoomLink('main-canvas')}`, createdAt: Date.now() },
+      { id: '2', name: 'Design Sprint', hash: `#${createRoomLink('design-sprint')}`, createdAt: Date.now() - 3600000 },
+    ];
+  }
+  return _defaultSessions;
+}
 
 export const useSessionManager = () => {
   const [sessions, setSessions] = useState<WorkspaceSession[]>(() => {
     try {
       const saved = localStorage.getItem(STORAGE_KEY);
-      return saved ? JSON.parse(saved) : DEFAULT_SESSIONS;
+      return saved ? JSON.parse(saved) : getDefaultSessions();
     } catch {
-      return DEFAULT_SESSIONS;
+      return getDefaultSessions();
     }
   });
 
   const [activeHash, setActiveHash] = useState<string>(() => {
-    return window.location.hash || sessions[0]?.hash || `#${DEFAULT_SESSIONS[0].hash}`;
+    return window.location.hash || sessions[0]?.hash || `#${getDefaultSessions()[0].hash}`;
   });
 
   // Listen for hash changes in URL without full page reloads

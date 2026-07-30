@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useRef, useMemo, useDeferredValue } from 'react';
 import { useVirtualizer } from '@tanstack/react-virtual';
 import { createHighlighter, type Highlighter, type ThemedToken } from 'shiki';
+import { createJavaScriptRegexEngine } from '@shikijs/engine-javascript';
 
 export interface VirtualizedCodeBlockProps {
   code: string;
@@ -13,8 +14,9 @@ let highlighterPromise: Promise<Highlighter> | null = null;
 function getHighlighterInstance(): Promise<Highlighter> {
   if (!highlighterPromise) {
     highlighterPromise = createHighlighter({
-      themes: ['vsc-dark-plus', 'github-dark'],
-      langs: ['javascript', 'typescript', 'jsx', 'tsx', 'json', 'html', 'css', 'python', 'bash', 'markdown', 'sql', 'yaml'],
+      themes: ['dark-plus'],
+      langs: ['javascript', 'typescript', 'json', 'html', 'css', 'python', 'bash'],
+      engine: createJavaScriptRegexEngine(),
     });
   }
   return highlighterPromise;

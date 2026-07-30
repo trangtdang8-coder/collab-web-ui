@@ -2,7 +2,7 @@ import React from 'react';
 import { MousePointer2, Pencil, Eraser, Type, AlertCircle } from 'lucide-react';
 import { motion } from 'framer-motion';
 
-export type ToolType = 'select' | 'draw' | 'erase' | 'text';
+export type ToolType = 'select' | 'draw' | 'erase' | 'text' | 'pan';
 
 interface FloatingToolbarProps {
   activeTool: ToolType;

@@ -2,38 +2,41 @@ import { useEffect, useRef, useState, useCallback } from 'react';
 import { io, Socket } from 'socket.io-client';
 import { offlineSync, CanvasStroke } from '../lib/offlineSync';
 
+const WS_URL = import.meta.env.VITE_WS_URL;
+
 export const useCanvasSocket = (activeHash: string) => {
   const socketRef = useRef<Socket | null>(null);
   const [isOnline, setIsOnline] = useState(false);
   const [connectionError, setConnectionError] = useState<string | null>(null);
 
   useEffect(() => {
-    // 1. Strip the '#' to get the raw room/VPS identifier
     const roomId = activeHash.replace('#', '');
-    
+
     if (!roomId) {
       setConnectionError('No workspace selected.');
+      return;
+    }
+
+    if (!WS_URL) {
       return;
     }
 
     setConnectionError(null);
     setIsOnline(false);
 
-    // 2. Initialize the socket connection mapped to the specific VPS hash
-    const wsUrl = (import.meta as unknown as { env: Record<string, string> }).env?.VITE_WS_URL || '';
-    const socket = io(wsUrl, {
+    const socket = io(WS_URL, {
       query: { roomId },
       reconnectionAttempts: 5,
       timeout: 10000,
-      transports: ['websocket'], // Force WebSocket bypass polling overhead
+      transports: ['websocket'],
     });
-    
+
     socketRef.current = socket;
 
     socket.on('connect', async () => {
       setIsOnline(true);
       setConnectionError(null);
-      
+
       await offlineSync.syncQueuedStrokes(async (strokes) => {
         return new Promise((resolve, reject) => {
           socket.emit('batch-strokes', strokes, (ack: { success: boolean }) => {
@@ -56,13 +59,12 @@ export const useCanvasSocket = (activeHash: string) => {
       }
     });
 
-    // 3. Strict Cleanup: Destroy the connection when the hash changes or component unmounts
     return () => {
       socket.removeAllListeners();
       socket.disconnect();
       socketRef.current = null;
     };
-  }, [activeHash]); // Re-run lifecycle strictly on hash change
+  }, [activeHash]);
 
   const emitStroke = useCallback(async (stroke: CanvasStroke) => {
     if (isOnline && socketRef.current?.connected) {

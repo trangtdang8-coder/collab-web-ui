@@ -4,8 +4,9 @@ let ctx: OffscreenCanvasRenderingContext2D | null = null;
 let canvas: OffscreenCanvas | null = null;
 let currentPixelRatio = 1;
 
-// Hold strokes in memory to redraw on resize
+// Hold strokes in memory to redraw on resize; capped at 1000 strokes
 const strokeHistory: Map<string, StrokeData> = new Map();
+const MAX_STROKES = 1000;
 
 self.onmessage = (e: MessageEvent<WorkerMessage>) => {
   const msg = e.data;
@@ -36,6 +37,10 @@ self.onmessage = (e: MessageEvent<WorkerMessage>) => {
     case 'DRAW_STROKE': {
       if (!ctx) return;
       strokeHistory.set(msg.stroke.id, msg.stroke);
+      if (strokeHistory.size > MAX_STROKES) {
+        const oldest = strokeHistory.keys().next().value;
+        if (oldest) strokeHistory.delete(oldest);
+      }
       drawStroke(msg.stroke);
       break;
     }

@@ -131,13 +131,17 @@ export function App(): ReactNode {
 		history.replaceState(null, "", window.location.pathname + window.location.search);
 	}, [disconnectCurrentClient, switchSession]);
 
+	const rejoinTimeoutRef = useRef<ReturnType<typeof setTimeout>>();
 	const rejoin = useCallback((): void => {
 		const creds = credsRef.current;
 		if (creds) {
 			disconnectCurrentClient();
 			setClient(null);
-			setTimeout(() => {
-				connect(creds.link, creds.name);
+			clearTimeout(rejoinTimeoutRef.current);
+			rejoinTimeoutRef.current = setTimeout(() => {
+				if (credsRef.current === creds) {
+					connect(creds.link, creds.name);
+				}
 			}, 50);
 		}
 	}, [disconnectCurrentClient, connect]);
@@ -267,7 +271,7 @@ function Session({ client, activeHash, activeSessionName, isOnline, connectionEr
 			{/* Global Keyboard Command Palette */}
 			<CommandPalette
 				onToolChange={(tool) => {
-					setActiveTool(tool === 'draw' ? 'draw' : tool === 'select' ? 'select' : 'select');
+					setActiveTool(tool);
 					setCanvasOverlayActive(true);
 				}}
 				onToggleAIChat={() => setAiChatOpen(prev => !prev)}

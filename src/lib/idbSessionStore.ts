@@ -50,14 +50,23 @@ export async function saveIDBSessions(sessions: WorkspaceSession[]): Promise<voi
       const store = tx.objectStore(STORE_NAME);
       
       // Clear existing and rewrite
-      store.clear().onsuccess = () => {
+      const clearReq = store.clear();
+      clearReq.onsuccess = () => {
+        let pending = sessions.length;
+        if (pending === 0) {
+          resolve();
+          return;
+        }
         for (const session of sessions) {
-          store.put(session);
+          const putReq = store.put(session);
+          putReq.onerror = () => reject(putReq.error);
+          putReq.onsuccess = () => {
+            pending--;
+            if (pending === 0) resolve();
+          };
         }
       };
-
-      tx.oncomplete = () => resolve();
-      tx.onerror = () => reject(tx.error);
+      clearReq.onerror = () => reject(clearReq.error);
     });
   } catch (err) {
     console.warn('IndexedDB write failed', err);

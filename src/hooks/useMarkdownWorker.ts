@@ -1,9 +1,14 @@
 import { useState, useEffect, useRef } from "react";
+import DOMPurify from "dompurify";
+
+const TIMEOUT_MS = 10_000;
 
 export interface UseMarkdownWorkerResult {
 	html: string;
 	loading: boolean;
 }
+
+let idCounter = 0;
 
 export const useMarkdownWorker = (text: string): UseMarkdownWorkerResult => {
 	const [html, setHtml] = useState<string>("");
@@ -12,10 +17,14 @@ export const useMarkdownWorker = (text: string): UseMarkdownWorkerResult => {
 	const lastProcessedTextRef = useRef<string>("");
 
 	useEffect(() => {
-		// Initialize dedicated web worker for off-thread markdown parsing & highlighting
 		workerRef.current = new Worker(new URL("../workers/markdown.worker.ts", import.meta.url), {
 			type: "module",
 		});
+
+		workerRef.current.onerror = () => {
+			setHtml(text);
+			setLoading(false);
+		};
 
 		return () => {
 			workerRef.current?.terminate();
@@ -31,13 +40,22 @@ export const useMarkdownWorker = (text: string): UseMarkdownWorkerResult => {
 		}
 
 		setLoading(true);
-		const id = `${Date.now()}_${Math.random().toString(36).substring(2, 7)}`;
+		const id = ++idCounter;
+
+		const timeoutId = setTimeout(() => {
+			workerRef.current?.removeEventListener("message", handleMessage);
+			setHtml(text);
+			setLoading(false);
+		}, TIMEOUT_MS);
 
 		const handleMessage = (e: MessageEvent) => {
 			if (e.data && e.data.id === id) {
-				setHtml(e.data.html);
+				clearTimeout(timeoutId);
+				const safeHtml = DOMPurify.sanitize(e.data.html, {
+					ADD_ATTR: ["target", "rel", "class"],
+				});
+				setHtml(safeHtml);
 				setLoading(false);
-				lastProcessedTextRef.current = text;
 			}
 		};
 
@@ -45,6 +63,7 @@ export const useMarkdownWorker = (text: string): UseMarkdownWorkerResult => {
 		workerRef.current.postMessage({ id, text });
 
 		return () => {
+			clearTimeout(timeoutId);
 			workerRef.current?.removeEventListener("message", handleMessage);
 		};
 	}, [text]);

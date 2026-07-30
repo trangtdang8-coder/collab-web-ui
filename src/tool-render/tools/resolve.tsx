@@ -129,3 +129,5 @@ function Body(props: ToolRenderProps): ReactNode {
 }
 
 export const resolveRenderer: ToolRenderer = { Summary, Body };
+export const rejectRenderer = resolveRenderer;
+export const proposeRenderer = resolveRenderer;

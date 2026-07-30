@@ -88,6 +88,7 @@ function AskEditor({ prefill, onSubmit }: AskEditorProps): ReactNode {
 				value={draft}
 				onChange={e => setDraft(e.target.value)}
 				onKeyDown={onKeyDown}
+				onFocus={() => setTimeout(() => taRef.current?.scrollIntoView({ block: "nearest" }), 300)}
 				onCompositionStart={onCompositionStart}
 				onCompositionEnd={onCompositionEnd}
 				placeholder="type your response…"
@@ -231,6 +232,7 @@ export function Composer({ client, snapshot }: ComposerProps): ReactNode {
 					value={text}
 					onChange={e => setText(e.target.value)}
 					onKeyDown={onKeyDown}
+					onFocus={() => setTimeout(() => taRef.current?.scrollIntoView({ block: "nearest" }), 300)}
 					onCompositionStart={onCompositionStart}
 					onCompositionEnd={onCompositionEnd}
 					placeholder={

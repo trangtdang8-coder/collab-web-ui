@@ -27,7 +27,7 @@ import { reflectRenderer } from "./tools/memory-reflect";
 import { retainRenderer } from "./tools/memory-retain";
 import { readRenderer } from "./tools/read";
 import { reportToolIssueRenderer } from "./tools/report-tool-issue";
-import { resolveRenderer } from "./tools/resolve";
+import { proposeRenderer, rejectRenderer, resolveRenderer } from "./tools/resolve";
 import { taskRenderer } from "./tools/task";
 import { todoRenderer } from "./tools/todo";
 import { webSearchRenderer } from "./tools/web-search";
@@ -69,8 +69,8 @@ const RENDERERS: Record<string, ToolRenderer> = {
 	read: readRenderer,
 	report_tool_issue: reportToolIssueRenderer,
 	resolve: resolveRenderer,
-	reject: resolveRenderer,
-	propose: resolveRenderer,
+	reject: rejectRenderer,
+	propose: proposeRenderer,
 	grep: grepRenderer,
 	search: grepRenderer,
 	task: taskRenderer,
